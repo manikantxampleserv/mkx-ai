@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id         Int        @id @default(autoincrement())
+  name       String
+  email      String     @unique
+  password   String
+  employees  Employee[] @relation("UserCreatedEmployees")
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+}
+
 model Employee {
   id            Int      @id @default(autoincrement())
   first_name    String
@@ -22,10 +32,3 @@ model Employee {
   updated_at    DateTime @updatedAt
 }
 
-model User {
-  id         Int        @id @default(autoincrement())
-  name       String
-  email      String     @unique
-  password   String
-  employees  Employee[] @relation("UserCreatedEmployees")
-}

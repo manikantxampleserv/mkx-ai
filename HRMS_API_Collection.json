@@ -1,0 +1,462 @@
+{
+  "info": {
+    "name": "HRMS API Collection",
+    "description": "Complete API collection for the HR Management System including employee management, AI-powered creation, and statistics",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "📚 API Documentation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api-docs",
+          "host": ["{{base_url}}"],
+          "path": ["api-docs"]
+        },
+        "description": "Access the Swagger API documentation interface"
+      }
+    },
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "auth", "register"]
+            },
+            "description": "Register a new user account"
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "auth", "login"]
+            },
+            "description": "Login and get authentication token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Employee Creation",
+      "item": [
+        {
+          "name": "Create Employee via AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Please create new records for three new hires. First, John Doe, a Software Engineer in the Engineering department starting on 2025-01-15, his email is john.doe@company.com. Second, Jane Smith, a Product Manager in the Product department starting on 2025-01-20, her email is jane.smith@company.com. Finally, Mark Johnson will be joining as a Senior Data Scientist in the Data Science department with a start date of 2025-02-01, his email is mark.johnson@company.com.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees"]
+            },
+            "description": "Create employee(s) using AI processing with natural language description"
+          }
+        },
+        {
+          "name": "Create Single Employee via AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Create a new employee record for Sarah Wilson, who is joining as a Marketing Specialist in the Marketing department. Her email is sarah.wilson@company.com and she starts on 2025-01-25.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees"]
+            },
+            "description": "Create a single employee using AI processing"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Employee Management",
+      "item": [
+        {
+          "name": "Get All Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees"]
+            },
+            "description": "Get all employees with pagination"
+          }
+        },
+        {
+          "name": "Get Employees with Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees?page=1&limit=10&department=Engineering&status=active&search=john",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "department",
+                  "value": "Engineering"
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                }
+              ]
+            },
+            "description": "Get employees with pagination, filtering, and search"
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees", "1"]
+            },
+            "description": "Get a specific employee by their ID"
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John Updated\",\n  \"last_name\": \"Doe Updated\",\n  \"email\": \"john.updated@company.com\",\n  \"job_title\": \"Senior Software Engineer\",\n  \"department\": \"Engineering\",\n  \"joining_date\": \"2025-01-15\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees", "1"]
+            },
+            "description": "Update an existing employee"
+          }
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees", "1"]
+            },
+            "description": "Delete an employee by ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Statistics & Reports",
+      "item": [
+        {
+          "name": "Get Employee Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/employees/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "employees", "stats"]
+            },
+            "description": "Get comprehensive employee statistics including counts by department"
+          }
+        },
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/departments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "departments"]
+            },
+            "description": "Get all departments with employee counts"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users"]
+            },
+            "description": "Get all users with pagination"
+          }
+        },
+        {
+          "name": "Get Users with Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users?page=1&limit=10&search=john",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                }
+              ]
+            },
+            "description": "Get users with pagination and search"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users", "1"]
+            },
+            "description": "Get a specific user by their ID"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users"]
+            },
+            "description": "Create a new user account"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"email\": \"john.updated@company.com\",\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users", "1"]
+            },
+            "description": "Update an existing user"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users", "1"]
+            },
+            "description": "Delete a user by ID"
+          }
+        },
+        {
+          "name": "Get User Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/users/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "users", "stats"]
+            },
+            "description": "Get user statistics including total users and creation trends"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🔍 Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the server is running"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set auth token if available",
+          "if (pm.environment.get('auth_token')) {",
+          "    pm.collectionVariables.set('auth_token', pm.environment.get('auth_token'));",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-save auth token from login response",
+          "if (pm.request.url.path.includes('/auth/login') && pm.response.code === 200) {",
+          "    const response = pm.response.json();",
+          "    if (response.token) {",
+          "        pm.environment.set('auth_token', response.token);",
+          "        pm.collectionVariables.set('auth_token', response.token);",
+          "        console.log('Auth token saved automatically');",
+          "    }",
+          "}",
+          "",
+          "// Log response for debugging",
+          "console.log('Response Status:', pm.response.status);",
+          "console.log('Response Time:', pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ]
+}

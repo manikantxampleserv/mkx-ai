@@ -1,4 +1,6 @@
 import { Request, Response, Router } from "express";
+import employeeRoutes from "./employee";
+import userRoutes from "./user";
 
 const routes = Router();
 
@@ -11,5 +13,9 @@ const routes = Router();
 routes.get("/", (_: Request, res: Response) => {
   res.send("Hello, TypeScript Express!");
 });
+
+// Mount route modules
+routes.use("/v1", employeeRoutes);
+routes.use("/v1", userRoutes);
 
 export default routes;
