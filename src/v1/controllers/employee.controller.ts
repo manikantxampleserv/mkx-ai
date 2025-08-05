@@ -1,7 +1,8 @@
-import prisma from "../../utils/prisma.config";
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
 import { Request, Response } from "express";
+import prisma from "../../utils/prisma.config";
+import { AuthRequest } from "@/middlewares/auth";
 
 export interface EmployeeData {
   first_name: string;
@@ -24,7 +25,10 @@ if (apiKey) {
 }
 
 // Create or skip employee if email exists
-export async function createEmployeeRecordInHRMS(employeeData: EmployeeData) {
+export async function createEmployeeRecordInHRMS(
+  employeeData: EmployeeData,
+  employeeId: number | undefined
+) {
   const existingEmployee = await prisma.employee.findUnique({
     where: { email: employeeData.email },
   });
@@ -45,7 +49,7 @@ export async function createEmployeeRecordInHRMS(employeeData: EmployeeData) {
       job_title: employeeData.job_title,
       department: employeeData.department,
       joining_date: new Date(employeeData.start_date),
-      created_by: 1, // Replace with dynamic user ID if needed
+      created_by: employeeId || 1,
     },
   });
 
@@ -86,10 +90,11 @@ function extractJsonFromMarkdown(text: string): string {
  *         description: AI service not available
  */
 export async function createEmployee(
-  req: Request,
+  req: AuthRequest,
   res: Response
 ): Promise<void> {
-  const promptText = req.body.prompt;
+  const promptText = req.body?.prompt;
+  const employeeId = req.user?.employeeId;
   if (!promptText) {
     res.status(400).json({ error: "Missing 'prompt' field in request." });
     return;
@@ -175,7 +180,10 @@ ${promptText}`;
 
     const hrmsResponses = [];
     for (const employeeData of employeesData) {
-      const hrmsResponse = await createEmployeeRecordInHRMS(employeeData);
+      const hrmsResponse = await createEmployeeRecordInHRMS(
+        employeeData,
+        employeeId
+      );
       hrmsResponses.push({ ...employeeData, hrms_api_status: hrmsResponse });
     }
 
@@ -413,7 +421,7 @@ export async function getDepartments(
     },
   });
 
-  const departmentList = departments.map((dept) => ({
+  const departmentList = departments.map((dept: any) => ({
     department: dept.department,
     count: dept._count.department,
   }));
@@ -471,7 +479,7 @@ export async function getEmployeeStats(
       }),
     ]);
 
-  const formattedDepartmentStats = departmentStats.map((stat) => ({
+  const formattedDepartmentStats = departmentStats.map((stat: any) => ({
     department: stat.department,
     count: stat._count.department,
   }));

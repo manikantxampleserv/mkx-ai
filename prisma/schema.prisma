@@ -7,28 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  HR
+  MANAGER
+  EMPLOYEE
+}
+
 model User {
-  id         Int        @id @default(autoincrement())
-  name       String
-  email      String     @unique
-  password   String
-  employees  Employee[] @relation("UserCreatedEmployees")
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
+  id               Int        @id @default(autoincrement())
+  name             String
+  email            String     @unique
+  password         String    
+  role             Role       @default(EMPLOYEE)
+  employee_id      Int?       @unique
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+  createdEmployees Employee[] @relation("UserCreatedEmployees")
+  employee         Employee?  @relation("UserEmployee", fields: [employee_id], references: [id])
 }
 
 model Employee {
-  id            Int      @id @default(autoincrement())
-  first_name    String
-  last_name     String
-  email         String   @unique
-  job_title     String
-  department    String
-  joining_date  DateTime
-  status        String   @default("active")
-  created_by    Int
-  creator       User     @relation("UserCreatedEmployees", fields: [created_by], references: [id])
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  email        String   @unique
+  job_title    String
+  department   String
+  joining_date DateTime
+  status       String   @default("active")
+  created_by   Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         User?    @relation("UserEmployee")
+  creator      User     @relation("UserCreatedEmployees", fields: [created_by], references: [id], onDelete: Cascade)
 }
-

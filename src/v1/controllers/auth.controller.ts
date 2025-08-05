@@ -2,16 +2,7 @@ import prisma from "../../utils/prisma.config";
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-interface AuthRequest extends Request {
-  user?: {
-    userId: number;
-  };
-}
-
-interface JWTPayload {
-  userId: number;
-}
+import { AuthRequest } from "@/middlewares/auth";
 
 /**
  * @swagger
@@ -78,16 +69,25 @@ export async function register(req: Request, res: Response): Promise<void> {
       id: true,
       name: true,
       email: true,
+      role: true,
+      employee_id: true,
       created_at: true,
       updated_at: true,
     },
   });
 
-  const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-  const token = jwt.sign({ userId: user.id } as JWTPayload, JWT_SECRET, {
+  const JWT_SECRET = process.env.JWT_SECRET || "MKX_SECRET_KEY";
+  const payload = {
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    employee_id: user.employee_id ?? null,
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, {
     expiresIn: "24h",
   });
-
   res.status(201).json({
     message: "User registered successfully",
     user,
@@ -142,18 +142,23 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-  const token = jwt.sign({ userId: user.id } as JWTPayload, JWT_SECRET, {
+  const JWT_SECRET = process.env.JWT_SECRET || "MKX_SECRET_KEY";
+
+  const payload = {
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    employeeId: user.employee_id ?? null,
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, {
     expiresIn: "24h",
   });
 
   res.json({
     message: "Login successful",
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    },
+    user: payload,
     token,
   });
 }
@@ -189,6 +194,8 @@ export async function getProfile(
       id: true,
       name: true,
       email: true,
+      role: true,
+      employee_id: true,
       created_at: true,
       updated_at: true,
     },
