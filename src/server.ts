@@ -4,6 +4,7 @@
  */
 
 import { createApp } from "./app";
+import logger from "./config/logger";
 
 /**
  * Starts the HTTP server
@@ -17,7 +18,7 @@ export const startServer = () => {
 
   // Start the server and listen on the specified port
   app.listen(port, () => {
-    console.log(`🚀 Server running at http://localhost:${port}`);
-    console.log(`📚 API Documentation: http://localhost:${port}/api-docs`);
+    logger.success(`Server running at http://localhost:${port}`);
+    logger.success(`API Documentation: http://localhost:${port}/api-docs`);
   });
 };

@@ -1,11 +1,14 @@
 /**
- * Employee routes
+ * Employee Routes
  *
- * Routes related to employee management
+ * Defines all endpoints related to employee management, including CRUD operations,
+ * statistics, and department listing.
  *
  * @module routes/employee
  */
+
 import { Router } from "express";
+import { authenticateToken } from "../../middlewares/auth";
 import {
   createEmployee,
   deleteEmployee,
@@ -14,86 +17,64 @@ import {
   getEmployeesList,
   getEmployeeStats,
   updateEmployee,
-} from "../controllers/employee.controller";
-import { authenticateToken } from "../../middlewares/auth";
+} from "../../v1/controllers/employee.controller";
 
 const routes = Router();
 
 /**
- * Create new employee
- *
- * @name POST /employees
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route POST /employees
+ * @group Employees - Create
+ * @summary Create a new employee
+ * @access Private (Requires authentication)
  */
-routes.post("/employees", authenticateToken, (req, res) =>
-  createEmployee(req, res)
-);
+routes.post("/employees", authenticateToken, createEmployee);
 
 /**
- * Get list of employees
- *
- * @name GET /employees
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route GET /employees
+ * @group Employees - Read
+ * @summary Get a list of all employees
+ * @access Private (Requires authentication)
  */
-routes.get("/employees", authenticateToken, (req, res) =>
-  getEmployeesList(req, res)
-);
+routes.get("/employees", authenticateToken, getEmployeesList);
 
 /**
- * Get employee statistics
- *
- * @name GET /employees/stats
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route GET /employees/stats
+ * @group Employees - Statistics
+ * @summary Get employee statistics (counts, etc.)
+ * @access Private (Requires authentication)
  */
-routes.get("/employees/stats", authenticateToken, (req, res) =>
-  getEmployeeStats(req, res)
-);
+routes.get("/employees/stats", authenticateToken, getEmployeeStats);
 
 /**
- * Get single employee
- *
- * @name GET /employees/:id
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route GET /employees/:id
+ * @group Employees - Read
+ * @summary Get a single employee by ID
+ * @access Private (Requires authentication)
  */
-routes.get("/employees/:id", authenticateToken, (req, res) =>
-  getEmployee(req, res)
-);
+routes.get("/employees/:id", authenticateToken, getEmployee);
 
 /**
- * Update single employee
- *
- * @name PUT /employees/:id
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route PUT /employees/:id
+ * @group Employees - Update
+ * @summary Update an existing employee by ID
+ * @access Private (Requires authentication)
  */
-routes.put("/employees/:id", authenticateToken, (req, res) =>
-  updateEmployee(req, res)
-);
+routes.put("/employees/:id", authenticateToken, updateEmployee);
 
 /**
- * Delete single employee
- *
- * @name DELETE /employees/:id
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route DELETE /employees/:id
+ * @group Employees - Delete
+ * @summary Delete an employee by ID
+ * @access Private (Requires authentication)
  */
-routes.delete("/employees/:id", authenticateToken, (req, res) =>
-  deleteEmployee(req, res)
-);
+routes.delete("/employees/:id", authenticateToken, deleteEmployee);
 
 /**
- * Get list of departments
- *
- * @name GET /departments
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * @route GET /departments
+ * @group Departments
+ * @summary Get a list of all departments
+ * @access Private (Requires authentication)
  */
-routes.get("/departments", authenticateToken, (req, res) =>
-  getDepartments(req, res)
-);
+routes.get("/departments", authenticateToken, getDepartments);
 
 export default routes;
