@@ -5,7 +5,7 @@
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express from "express";
+import express, { Application } from "express";
 import routes from "./routes";
 import { setupSwagger } from "./utils/swagger.config";
 
@@ -13,7 +13,7 @@ import { setupSwagger } from "./utils/swagger.config";
  * Creates and configures the Express application
  * @returns {Application} Configured Express application
  */
-export const createApp = () => {
+export const createApp = (): Application => {
   // Create an Express application
   const app = express();
 

@@ -157,7 +157,7 @@ Use the **"Create Employee via AI"** request to create employees using natural l
 
 ### Swagger UI
 
-- **URL:** `http://localhost:4000/api-docs`
+- **URL:** `http://localhost:4000/docs`
 - **Features:** Interactive API documentation with testing interface
 
 ## 🛠️ Advanced Features
@@ -256,7 +256,7 @@ If you encounter any issues:
 1. Check the server logs
 2. Verify your environment variables
 3. Test the health endpoint first
-4. Check the Swagger documentation at `/api-docs`
+4. Check the Swagger documentation at `/docs`
 
 ## 🎯 Next Steps
 

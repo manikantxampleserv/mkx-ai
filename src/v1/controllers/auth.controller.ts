@@ -1,8 +1,9 @@
 import prisma from "../../utils/prisma.config";
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "@/middlewares/auth";
+import logger from "../../config/logger";
 
 /**
  * @swagger
@@ -57,7 +58,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcryptjs.hash(password, 10);
 
   const user = await prisma.user.create({
     data: {
@@ -125,6 +126,9 @@ export async function register(req: Request, res: Response): Promise<void> {
 export async function login(req: Request, res: Response): Promise<void> {
   const { email, password } = req.body;
 
+  logger.info(`Login attempt for email: ${email}`);
+  logger.info(`Login attempt for password: ${password}`);
+
   if (!email || !password) {
     res.status(400).json({
       error: "Missing required fields",
@@ -137,7 +141,9 @@ export async function login(req: Request, res: Response): Promise<void> {
     where: { email },
   });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  logger.info(`User found: ${user}`);
+
+  if (!user || !(await bcryptjs.compare(password, user.password))) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }

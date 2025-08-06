@@ -4,7 +4,7 @@ import { Express } from "express";
 
 /**
  * Swagger configuration for the HRMS API
- * Provides interactive API documentation at /api-docs
+ * Provides interactive API documentation at /docs
  */
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -231,7 +231,7 @@ export function setupSwagger(app: Express): void {
 
   // Mount Swagger documentation
   app.use(
-    "/api-docs",
+    "/docs",
     swaggerUi.serve,
     swaggerUi.setup(specs, {
       customCss: ".swagger-ui .topbar { display: none }",

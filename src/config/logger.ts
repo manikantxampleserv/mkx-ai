@@ -1,5 +1,9 @@
-import { createLogger, format, transports, Logger } from "winston";
-import { Logger as WinstonLogger } from "winston";
+import {
+  createLogger,
+  format,
+  transports,
+  Logger as WinstonLogger,
+} from "winston";
 
 export interface CustomLogger extends WinstonLogger {
   success: (msg: string) => void;
@@ -17,10 +21,10 @@ const RESET = "\x1b[0m";
 
 const { combine, timestamp, printf, errors } = format;
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
+const logFormat = printf(({ level, message, stack }) => {
   const color = COLORS[level] || COLORS.default;
-  const coloredLevel = `${color}${level.toUpperCase()}${RESET}`;
-  return `[${timestamp}] [${coloredLevel}]: ${stack || message}`;
+  const coloredLevel = `${color}[${level}] ${stack || message}${RESET}`;
+  return `${coloredLevel}`;
 });
 
 const customLevels = {

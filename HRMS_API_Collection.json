@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "HRMS API Collection",
-    "description": "Complete API collection for the HR Management System including employee management, AI-powered creation, and statistics",
-    "version": "1.0.0",
+    "name": "HRMS API Collection - Updated",
+    "description": "Complete API collection for the HR Management System with automatic auth token management",
+    "version": "1.1.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -39,12 +39,46 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api-docs",
+          "raw": "{{base_url}}/docs",
           "host": ["{{base_url}}"],
-          "path": ["api-docs"]
+          "path": ["docs"]
         },
         "description": "Access the Swagger API documentation interface"
       }
+    },
+    {
+      "name": "🔍 Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the server is running"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Server is healthy\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "console.log('Health Check - Status:', pm.response.status);",
+                  "console.log('Server Response Time:', pm.response.responseTime + 'ms');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
     },
     {
       "name": "🔐 Authentication",
@@ -69,7 +103,42 @@
               "path": ["api", "{{api_version}}", "auth", "register"]
             },
             "description": "Register a new user account"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Registration successful\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "// Auto-save auth token if provided in register response",
+                  "if (pm.response.code === 201) {",
+                  "    try {",
+                  "        const response = pm.response.json();",
+                  "        if (response.token) {",
+                  "            pm.collectionVariables.set('auth_token', response.token);",
+                  "            pm.environment.set('auth_token', response.token);",
+                  "            console.log('✅ Auth token saved automatically from registration');",
+                  "            console.log('Token preview:', response.token.substring(0, 20) + '...');",
+                  "        } else if (response.data && response.data.token) {",
+                  "            pm.collectionVariables.set('auth_token', response.data.token);",
+                  "            pm.environment.set('auth_token', response.data.token);",
+                  "            console.log('✅ Auth token saved automatically from registration (nested)');",
+                  "        }",
+                  "    } catch (e) {",
+                  "        console.log('⚠️ Could not parse registration response for token');",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Registration failed with status:', pm.response.status);",
+                  "    console.log('Response:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Login User",
@@ -90,8 +159,105 @@
               "host": ["{{base_url}}"],
               "path": ["api", "{{api_version}}", "auth", "login"]
             },
-            "description": "Login and get authentication token"
-          }
+            "description": "Login and get authentication token - Token will be automatically saved"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Enhanced auto-save auth token from login response",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        const response = pm.response.json();",
+                  "        let token = null;",
+                  "        ",
+                  "        // Try different possible token locations",
+                  "        if (response.token) {",
+                  "            token = response.token;",
+                  "        } else if (response.data && response.data.token) {",
+                  "            token = response.data.token;",
+                  "        } else if (response.accessToken) {",
+                  "            token = response.accessToken;",
+                  "        } else if (response.access_token) {",
+                  "            token = response.access_token;",
+                  "        } else if (response.authToken) {",
+                  "            token = response.authToken;",
+                  "        }",
+                  "        ",
+                  "        if (token) {",
+                  "            // Save to both collection variables and environment",
+                  "            pm.collectionVariables.set('auth_token', token);",
+                  "            pm.environment.set('auth_token', token);",
+                  "            ",
+                  "            console.log('✅ Auth token saved successfully!');",
+                  "            console.log('Token preview:', token.substring(0, 30) + '...');",
+                  "            ",
+                  "            // Show user info if available",
+                  "            if (response.user) {",
+                  "                console.log('👤 Logged in as:', response.user.name || response.user.email);",
+                  "            }",
+                  "        } else {",
+                  "            console.log('⚠️ No token found in login response');",
+                  "            console.log('Response structure:', Object.keys(response));",
+                  "        }",
+                  "    } catch (e) {",
+                  "        console.log('❌ Error parsing login response:', e.message);",
+                  "        console.log('Raw response:', pm.response.text());",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Login failed with status:', pm.response.status);",
+                  "    console.log('Error response:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "auth", "logout"]
+            },
+            "description": "Logout user and clear token"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Clear auth token on successful logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('auth_token', '');",
+                  "    pm.environment.set('auth_token', '');",
+                  "    console.log('✅ Logged out successfully - Auth token cleared');",
+                  "} else {",
+                  "    console.log('⚠️ Logout response:', pm.response.status);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -116,7 +282,32 @@
               "path": ["api", "{{api_version}}", "employees"]
             },
             "description": "Create employee(s) using AI processing with natural language description. Required field: prompt (string)."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"AI Employee Creation Status\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    try {",
+                  "        const response = pm.response.json();",
+                  "        if (response.employees || response.data) {",
+                  "            const employees = response.employees || response.data;",
+                  "            console.log(`✅ Successfully created ${employees.length} employee(s) via AI`);",
+                  "        }",
+                  "    } catch (e) {",
+                  "        console.log('✅ AI employee creation successful');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Create Single Employee via AI",
@@ -126,6 +317,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
@@ -138,7 +333,20 @@
               "path": ["api", "{{api_version}}", "employees"]
             },
             "description": "Create a single employee using AI processing"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Single AI Employee Creation\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -153,54 +361,42 @@
               { "key": "Authorization", "value": "Bearer {{auth_token}}" }
             ],
             "url": {
-              "raw": "{{base_url}}/api/{{api_version}}/employees?page=1&limit=10&department=Engineering&status=active&search=john",
+              "raw": "{{base_url}}/api/{{api_version}}/employees?page=1&limit=10",
               "host": ["{{base_url}}"],
               "path": ["api", "{{api_version}}", "employees"],
               "query": [
                 { "key": "page", "value": "1" },
                 { "key": "limit", "value": "10" },
-                { "key": "department", "value": "Engineering" },
-                { "key": "status", "value": "active" },
-                { "key": "search", "value": "john" }
+                { "key": "department", "value": "Engineering", "disabled": true },
+                { "key": "status", "value": "active", "disabled": true },
+                { "key": "search", "value": "john", "disabled": true }
               ]
             },
             "description": "Get all employees with pagination, filtering, and search. Query params: page, limit, department, status, search. Requires Bearer token."
-          }
-        },
-        {
-          "name": "Get Employees with Filters",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/{{api_version}}/employees?page=1&limit=10&department=Engineering&status=active&search=john",
-              "host": ["{{base_url}}"],
-              "path": ["api", "{{api_version}}", "employees"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "department",
-                  "value": "Engineering"
-                },
-                {
-                  "key": "status",
-                  "value": "active"
-                },
-                {
-                  "key": "search",
-                  "value": "john"
-                }
-              ]
-            },
-            "description": "Get employees with pagination, filtering, and search"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get Employees Success\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    try {",
+                  "        const response = pm.response.json();",
+                  "        const count = response.employees ? response.employees.length : (response.data ? response.data.length : 0);",
+                  "        console.log(`📊 Found ${count} employees`);",
+                  "    } catch (e) {",
+                  "        console.log('📊 Employee data retrieved');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Get Employee by ID",
@@ -215,7 +411,20 @@
               "path": ["api", "{{api_version}}", "employees", "1"]
             },
             "description": "Get a specific employee by their ID. Requires Bearer token."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get Employee by ID\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Update Employee",
@@ -235,7 +444,20 @@
               "path": ["api", "{{api_version}}", "employees", "1"]
             },
             "description": "Update an existing employee. All fields are optional. Requires Bearer token."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Update Employee Success\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Delete Employee",
@@ -250,7 +472,20 @@
               "path": ["api", "{{api_version}}", "employees", "1"]
             },
             "description": "Delete an employee by ID. Requires Bearer token."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Delete Employee Success\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -270,7 +505,20 @@
               "path": ["api", "{{api_version}}", "employees", "stats"]
             },
             "description": "Get comprehensive employee statistics including counts by department. Requires Bearer token."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get Stats Success\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Get All Departments",
@@ -285,7 +533,20 @@
               "path": ["api", "{{api_version}}", "departments"]
             },
             "description": "Get all departments with employee counts. Requires Bearer token."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get Departments Success\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
@@ -296,47 +557,42 @@
           "name": "Get All Users",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
             "url": {
-              "raw": "{{base_url}}/api/{{api_version}}/users",
-              "host": ["{{base_url}}"],
-              "path": ["api", "{{api_version}}", "users"]
-            },
-            "description": "Get all users with pagination"
-          }
-        },
-        {
-          "name": "Get Users with Search",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/{{api_version}}/users?page=1&limit=10&search=john",
+              "raw": "{{base_url}}/api/{{api_version}}/users?page=1&limit=10",
               "host": ["{{base_url}}"],
               "path": ["api", "{{api_version}}", "users"],
               "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "search",
-                  "value": "john"
-                }
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "john", "disabled": true }
               ]
             },
-            "description": "Get users with pagination and search"
-          }
+            "description": "Get all users with pagination and search"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get Users Success\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Get User by ID",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
             "url": {
               "raw": "{{base_url}}/api/{{api_version}}/users/1",
               "host": ["{{base_url}}"],
@@ -353,11 +609,15 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@company.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/{{api_version}}/users",
@@ -375,6 +635,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
               }
             ],
             "body": {
@@ -393,7 +657,12 @@
           "name": "Delete User",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/{{api_version}}/users/1",
               "host": ["{{base_url}}"],
@@ -406,32 +675,18 @@
           "name": "Get User Statistics",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/{{api_version}}/users/stats",
               "host": ["{{base_url}}"],
               "path": ["api", "{{api_version}}", "users", "stats"]
             },
             "description": "Get user statistics including total users and creation trends"
-          }
-        }
-      ]
-    },
-
-    {
-      "name": "🔍 Health & Status",
-      "item": [
-        {
-          "name": "Health Check",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
-            },
-            "description": "Check if the server is running"
           }
         }
       ]
@@ -443,9 +698,14 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Auto-set auth token if available",
-          "if (pm.environment.get('auth_token')) {",
-          "    pm.collectionVariables.set('auth_token', pm.environment.get('auth_token'));",
+          "// Check if auth token is available",
+          "const token = pm.collectionVariables.get('auth_token') || pm.environment.get('auth_token');",
+          "",
+          "if (!token && pm.request.url.path.some(path => !['health', 'auth', 'docs'].includes(path))) {",
+          "    console.log('⚠️ No auth token found. Please login first.');",
+          "} else if (token) {",
+          "    pm.collectionVariables.set('auth_token', token);",
+          "    console.log('🔑 Using auth token:', token.substring(0, 20) + '...');",
           "}"
         ]
       }
@@ -455,19 +715,20 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Auto-save auth token from login response",
-          "if (pm.request.url.path.includes('/auth/login') && pm.response.code === 200) {",
-          "    const response = pm.response.json();",
-          "    if (response.token) {",
-          "        pm.environment.set('auth_token', response.token);",
-          "        pm.collectionVariables.set('auth_token', response.token);",
-          "        console.log('Auth token saved automatically');",
-          "    }",
-          "}",
+          "// Global response logging",
+          "console.log('📡 Request:', pm.request.method, pm.request.url.toString());",
+          "console.log('📊 Status:', pm.response.status, pm.response.code);",
+          "console.log('⏱️ Time:', pm.response.responseTime + 'ms');",
           "",
-          "// Log response for debugging",
-          "console.log('Response Status:', pm.response.status);",
-          "console.log('Response Time:', pm.response.responseTime + 'ms');"
+          "// Handle authentication errors globally",
+          "if (pm.response.code === 401) {",
+          "    console.log('🚫 Authentication failed - Token may be expired or invalid');",
+          "    console.log('💡 Try logging in again to get a fresh token');",
+          "} else if (pm.response.code === 403) {",
+          "    console.log('🚫 Access forbidden - Insufficient permissions');",
+          "} else if (pm.response.code >= 500) {",
+          "    console.log('💥 Server error - Check server logs');",
+          "}"
         ]
       }
     }
